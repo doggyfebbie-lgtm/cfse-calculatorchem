@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CFSE & Magnetic Moment Calculator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f5f4f0;color:#1a1a1a;min-height:100vh;padding:1.5rem}
+.app{max-width:720px;margin:0 auto;font-size:15px}
+.title{font-size:26px;font-weight:600;color:#1a1a1a;margin-bottom:4px}
+.subtitle{font-size:14px;color:#666;margin-bottom:1.5rem}
+.card{background:#fff;border:1px solid #e0dfd8;border-radius:12px;padding:1.4rem;margin-bottom:1rem}
+.section-label{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem}
+.input-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:1rem}
+.field label{font-size:13px;color:#555;display:block;margin-bottom:6px}
+.field select,.field input[type=number]{width:100%;padding:8px 10px;border:1px solid #d0cfc7;border-radius:8px;font-size:14px;background:#fafaf8;color:#1a1a1a;outline:none}
+.field select:focus,.field input:focus{border-color:#888}
+.electron-row{display:flex;align-items:center;gap:12px;margin-bottom:.75rem}
+.electron-row label{font-size:13px;color:#555;width:100px;flex-shrink:0}
+.electron-row input[type=range]{flex:1;accent-color:#1a1a1a}
+.electron-val{font-size:15px;font-weight:600;min-width:22px;color:#1a1a1a}
+.btn-row{display:flex;gap:10px;margin-top:1rem}
+.btn-primary{background:#1a1a1a;color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.btn-primary:hover{opacity:.8}
+.btn-reset{background:transparent;color:#666;border:1px solid #d0cfc7;border-radius:8px;padding:10px 18px;font-size:14px;cursor:pointer;transition:background .15s}
+.btn-reset:hover{background:#f0efe8}
+.result-area{display:none}
+.metric-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:1rem}
+.metric{background:#f5f4f0;border-radius:8px;padding:.9rem 1rem}
+.metric-label{font-size:12px;color:#888;margin-bottom:5px}
+.metric-value{font-size:22px;font-weight:600;color:#1a1a1a}
+.metric-unit{font-size:12px;color:#888;margin-top:2px}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:1rem}
+.badge-para{background:#FCEBEB;color:#791F1F}
+.badge-dia{background:#EAF3DE;color:#3B6D11}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot-para{background:#E24B4A}
+.dot-dia{background:#639922}
+.steps-toggle{font-size:13px;color:#555;cursor:pointer;text-decoration:underline;text-underline-offset:3px;display:block;margin-bottom:.75rem;background:none;border:none;padding:0;text-align:left}
+.steps-box{background:#f5f4f0;border-radius:8px;padding:1rem;font-size:13px;line-height:1.9;color:#555;display:none}
+.steps-box b{color:#1a1a1a;font-weight:600}
+.orbital-viz{display:flex;gap:12px;align-items:flex-end;margin-bottom:1rem;flex-wrap:wrap}
+.orb-group{text-align:center}
+.orb-group-label{font-size:11px;color:#888;margin-bottom:6px}
+.orb-boxes{display:flex;gap:5px}
+.orb-box{width:36px;height:44px;border:2px solid #d0cfc7;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;background:#fff}
+.electron-arrow{font-size:16px;line-height:1;color:#1a1a1a}
+.energy-sep{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 6px 6px;color:#aaa;font-size:11px;gap:3px}
+.energy-line{width:1.5px;height:30px;background:#ccc}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:480px){.compare-grid{grid-template-columns:1fr}}
+.compare-card{background:#fff;border:1px solid #e0dfd8;border-radius:10px;padding:1rem}
+.compare-card h4{font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:.75rem}
+.cmp-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #f0efe8}
+.cmp-row:last-child{border-bottom:none}
+.cmp-key{color:#888}
+.presets{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:1.25rem}
+.preset-btn{font-size:12px;padding:5px 11px;border:1px solid #d0cfc7;border-radius:20px;background:#fff;color:#555;cursor:pointer;transition:all .15s}
+.preset-btn:hover{background:#f0efe8;color:#1a1a1a}
+.theory-box{font-size:13px;line-height:1.8;color:#666}
+.theory-box b{color:#1a1a1a;font-weight:600}
+.error-msg{color:#A32D2D;font-size:13px;margin-top:.5rem;display:none}
+.toggle-row{display:flex;align-items:center;gap:8px;font-size:13px;color:#666;margin-top:10px;cursor:pointer}
+.toggle-row input[type=checkbox]{cursor:pointer;accent-color:#1a1a1a}
+.sep{width:100%;height:1px;background:#f0efe8;margin:1.1rem 0}
+.export-btn{font-size:12px;padding:6px 14px;border:1px solid #d0cfc7;border-radius:8px;background:#fff;color:#555;cursor:pointer;float:right;transition:all .15s}
+.export-btn:hover{background:#f0efe8}
+</style>
+</head>
+<body>
+<div class="app">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px">
+    <div class="title">CFSE & Magnetic Moment Calculator</div>
+  </div>
+  <div class="subtitle">Crystal field theory for coordination complexes — octahedral and tetrahedral</div>
+
+  <div class="card">
+    <div class="section-label">Quick presets</div>
+    <div class="presets">
+      <button class="preset-btn" onclick="applyPreset(1,'oct','weak')">d¹ Oct</button>
+      <button class="preset-btn" onclick="applyPreset(3,'oct','weak')">d³ Oct</button>
+      <button class="preset-btn" onclick="applyPreset(5,'oct','strong')">d⁵ low spin</button>
+      <button class="preset-btn" onclick="applyPreset(5,'oct','weak')">d⁵ high spin</button>
+      <button class="preset-btn" onclick="applyPreset(6,'oct','strong')">d⁶ low spin</button>
+      <button class="preset-btn" onclick="applyPreset(6,'oct','weak')">d⁶ high spin</button>
+      <button class="preset-btn" onclick="applyPreset(8,'oct','weak')">d⁸ Oct</button>
+      <button class="preset-btn" onclick="applyPreset(4,'tet','weak')">d⁴ Tet</button>
+    </div>
+
+    <div class="section-label">Configuration</div>
+    <div class="electron-row">
+      <label>d-electrons</label>
+      <input type="range" id="dElec" min="0" max="10" value="5" oninput="document.getElementById('dVal').textContent=this.value">
+      <span class="electron-val" id="dVal">5</span>
+    </div>
+
+    <div class="input-grid">
+      <div class="field">
+        <label>Complex type</label>
+        <select id="complexType">
+          <option value="oct">Octahedral</option>
+          <option value="tet">Tetrahedral</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Ligand field</label>
+        <select id="fieldType">
+          <option value="strong">Strong field (low spin)</option>
+          <option value="weak">Weak field (high spin)</option>
+        </select>
+      </div>
+    </div>
+
+    <label class="toggle-row">
+      <input type="checkbox" id="compareToggle"> Compare strong vs weak field side-by-side
+    </label>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="calculate()">Calculate</button>
+      <button class="btn-reset" onclick="resetAll()">Reset</button>
+    </div>
+    <div class="error-msg" id="errorMsg">Please enter a valid number of d-electrons (0–10).</div>
+  </div>
+
+  <div class="result-area" id="resultArea">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+        <div class="section-label" style="margin-bottom:0">Orbital filling</div>
+        <button class="export-btn" onclick="exportResult()">Export result</button>
+      </div>
+      <div class="orbital-viz" id="orbViz"></div>
+      <div class="sep"></div>
+      <div class="section-label">Results</div>
+      <div id="badge"></div>
+      <div class="metric-row" id="metrics"></div>
+      <button class="steps-toggle" id="stepsToggle" onclick="toggleSteps()">Show step-by-step solution</button>
+      <div class="steps-box" id="stepsBox"></div>
+    </div>
+
+    <div class="compare-area" id="compareArea" style="display:none;margin-top:1rem">
+      <div class="card">
+        <div class="section-label">Comparison: strong vs weak field</div>
+        <div class="compare-grid" id="compareGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card theory-box">
+    <b>Crystal Field Theory — quick reference</b><br>
+    In an <b>octahedral</b> complex, d-orbitals split into t₂g (lower, ×3) and eg (upper, ×2). Strong-field ligands force electron pairing (low spin); weak-field allow maximum unpaired electrons (high spin). In <b>tetrahedral</b> complexes the splitting is inverted: e (lower, ×2) and t₂ (upper, ×3), with splitting energy ≈ 4/9 Δoct — so tetrahedral complexes are almost always high spin. CFSE is the stabilisation energy gained by placing electrons in lower-energy orbitals. Magnetic moment <b>μ = √(n(n+2)) BM</b> where n = unpaired electrons.
+  </div>
+</div>
+
+<script>
+const CFSE_OCT={strong:[[-0.4],[-0.8],[-1.2],[-1.6],[-2.0],[-2.4],[-1.8],[-1.2],[-0.6],[0.0]],weak:[[-0.4],[-0.8],[-1.2],[-0.6],[0.0],[-0.4],[-0.8],[-1.2],[-0.6],[0.0]]};
+const CFSE_TET={weak:[[-0.267],[-0.533],[-0.356],[-0.178],[0.0],[-0.267],[-0.533],[-0.356],[-0.178],[0.0]],strong:[[-0.267],[-0.533],[-0.356],[-0.178],[0.0],[-0.267],[-0.533],[-0.356],[-0.178],[0.0]]};
+
+function getConfig(n,type,field){
+  if(n===0)return{t2g:[0,0,0],eg:[0,0],e:[0,0],t2:[0,0,0],unpaired:0};
+  if(type==='oct'){
+    const lo={t2g:[0,0,0],eg:[0,0]};
+    let rem=n;
+    if(field==='strong'){
+      const f=[Math.min(rem,1),Math.min(Math.max(rem-1,0),1),Math.min(Math.max(rem-2,0),1)];
+      let r2=Math.max(rem-3,0);
+      const f2=[Math.min(r2,1),Math.min(Math.max(r2-1,0),1),Math.min(Math.max(r2-2,0),1)];
+      let r3=Math.max(rem-6,0);
+      const e1=[Math.min(r3,1),Math.min(Math.max(r3-1,0),1)];
+      let r4=Math.max(rem-8,0);
+      const e2=[Math.min(r4,1),Math.min(Math.max(r4-1,0),1)];
+      lo.t2g=[f[0]+f2[0],f[1]+f2[1],f[2]+f2[2]];
+      lo.eg=[e1[0]+e2[0],e1[1]+e2[1]];
+    } else {
+      const t=[Math.min(rem,1),Math.min(Math.max(rem-1,0),1),Math.min(Math.max(rem-2,0),1)];
+      let r2=Math.max(rem-3,0);
+      const e=[Math.min(r2,1),Math.min(Math.max(r2-1,0),1)];
+      let r3=Math.max(rem-5,0);
+      const t2=[Math.min(r3,1),Math.min(Math.max(r3-1,0),1),Math.min(Math.max(r3-2,0),1)];
+      let r4=Math.max(rem-8,0);
+      const e2=[Math.min(r4,1),Math.min(Math.max(r4-1,0),1)];
+      lo.t2g=[t[0]+t2[0],t[1]+t2[1],t[2]+t2[2]];
+      lo.eg=[e[0]+e2[0],e[1]+e2[1]];
+    }
+    const unpaired=lo.t2g.reduce((a,v)=>a+(v===1?1:0),0)+lo.eg.reduce((a,v)=>a+(v===1?1:0),0);
+    return{...lo,unpaired};
+  } else {
+    const lo={e:[0,0],t2:[0,0,0]};
+    const e1=[Math.min(n,1),Math.min(Math.max(n-1,0),1)];
+    let r2=Math.max(n-2,0);
+    const t21=[Math.min(r2,1),Math.min(Math.max(r2-1,0),1),Math.min(Math.max(r2-2,0),1)];
+    let r3=Math.max(n-5,0);
+    const e2=[Math.min(r3,1),Math.min(Math.max(r3-1,0),1)];
+    let r4=Math.max(n-7,0);
+    const t22=[Math.min(r4,1),Math.min(Math.max(r4-1,0),1),Math.min(Math.max(r4-2,0),1)];
+    lo.e=[e1[0]+e2[0],e1[1]+e2[1]];
+    lo.t2=[t21[0]+t22[0],t21[1]+t22[1],t21[2]+t22[2]];
+    const unpaired=lo.e.reduce((a,v)=>a+(v===1?1:0),0)+lo.t2.reduce((a,v)=>a+(v===1?1:0),0);
+    return{...lo,unpaired};
+  }
+}
+
+function getCFSE(n,type,field){
+  if(n===0)return 0;
+  const tbl=type==='oct'?CFSE_OCT:CFSE_TET;
+  const v=(tbl[field]||tbl['weak'])[n-1];
+  return v?v[0]:0;
+}
+
+function spinLabel(n,type,field){
+  if(n<=3)return'n/a';
+  if(type==='tet')return'high spin';
+  return field==='strong'?'low spin':'high spin';
+}
+
+function arrowHTML(count){
+  if(count===0)return'<span style="opacity:.2;font-size:14px">—</span>';
+  if(count===1)return'<span class="electron-arrow" style="color:#3B6D11">↑</span>';
+  return'<span class="electron-arrow" style="color:#185FA5">↑</span><span class="electron-arrow" style="color:#A32D2D;transform:scaleY(-1);display:inline-block">↓</span>';
+}
+
+function renderOrbViz(cfg,type){
+  const el=document.getElementById('orbViz');
+  el.innerHTML='';
+  const sep=`<div class="energy-sep"><span>Δ</span><div class="energy-line"></div></div>`;
+  if(type==='oct'){
+    el.innerHTML=`
+      <div class="orb-group"><div class="orb-group-label">t₂g (−0.4Δ each)</div><div class="orb-boxes">${cfg.t2g.map(v=>`<div class="orb-box">${arrowHTML(v)}</div>`).join('')}</div></div>
+      ${sep}
+      <div class="orb-group"><div class="orb-group-label">eg (+0.6Δ each)</div><div class="orb-boxes">${cfg.eg.map(v=>`<div class="orb-box">${arrowHTML(v)}</div>`).join('')}</div></div>`;
+  } else {
+    el.innerHTML=`
+      <div class="orb-group"><div class="orb-group-label">e (−0.267Δt each)</div><div class="orb-boxes">${cfg.e.map(v=>`<div class="orb-box">${arrowHTML(v)}</div>`).join('')}</div></div>
+      ${sep}
+      <div class="orb-group"><div class="orb-group-label">t₂ (+0.178Δt each)</div><div class="orb-boxes">${cfg.t2.map(v=>`<div class="orb-box">${arrowHTML(v)}</div>`).join('')}</div></div>`;
+  }
+}
+
+function calculate(){
+  const n=parseInt(document.getElementById('dElec').value);
+  const type=document.getElementById('complexType').value;
+  const field=document.getElementById('fieldType').value;
+  const errEl=document.getElementById('errorMsg');
+  if(isNaN(n)||n<0||n>10){errEl.style.display='block';return;}
+  errEl.style.display='none';
+  const cfg=getConfig(n,type,field);
+  renderOrbViz(cfg,type);
+  const cfse=getCFSE(n,type,field);
+  const mu=Math.sqrt(cfg.unpaired*(cfg.unpaired+2));
+  const sym=type==='oct'?'Δoct':'Δtet';
+  document.getElementById('badge').innerHTML=cfg.unpaired===0
+    ?`<span class="badge badge-dia"><span class="dot dot-dia"></span>Diamagnetic</span>`
+    :`<span class="badge badge-para"><span class="dot dot-para"></span>Paramagnetic</span>`;
+  document.getElementById('metrics').innerHTML=`
+    <div class="metric"><div class="metric-label">Unpaired electrons</div><div class="metric-value">${cfg.unpaired}</div><div class="metric-unit">n</div></div>
+    <div class="metric"><div class="metric-label">Magnetic moment</div><div class="metric-value">${mu.toFixed(2)}</div><div class="metric-unit">BM</div></div>
+    <div class="metric"><div class="metric-label">CFSE</div><div class="metric-value">${cfse.toFixed(3)}</div><div class="metric-unit">${sym}</div></div>
+    <div class="metric"><div class="metric-label">Spin state</div><div class="metric-value" style="font-size:15px;padding-top:4px">${spinLabel(n,type,field)}</div><div class="metric-unit">${type==='oct'?'octahedral':'tetrahedral'}</div></div>`;
+  document.getElementById('stepsBox').innerHTML=buildSteps(n,type,field);
+  document.getElementById('resultArea').style.display='block';
+  const compare=document.getElementById('compareToggle').checked;
+  const ca=document.getElementById('compareArea');
+  if(compare){ca.style.display='block';renderCompare(n,type);}
+  else ca.style.display='none';
+}
+
+function buildSteps(n,type,field){
+  const cfg=getConfig(n,type,field);
+  const cfse=getCFSE(n,type,field);
+  const mu=Math.sqrt(cfg.unpaired*(cfg.unpaired+2));
+  const sym=type==='oct'?'Δoct':'Δtet';
+  return `<b>Step 1 — Identify configuration:</b> d${n} electrons, ${type==='oct'?'octahedral':'tetrahedral'} complex, ${field==='strong'?'strong':'weak'} field ligands → <b>${spinLabel(n,type,field)}</b><br>
+<b>Step 2 — Fill orbitals:</b> ${type==='oct'?`t₂g: (${cfg.t2g.join(', ')}) | eg: (${cfg.eg.join(', ')})`:`e: (${cfg.e.join(', ')}) | t₂: (${cfg.t2.join(', ')})`}<br>
+<b>Step 3 — Unpaired electrons:</b> n = ${cfg.unpaired}<br>
+<b>Step 4 — Magnetic moment:</b> μ = √(${cfg.unpaired}×${cfg.unpaired+2}) = <b>${mu.toFixed(2)} BM</b><br>
+<b>Step 5 — CFSE:</b> <b>${cfse.toFixed(3)} ${sym}</b><br>
+<b>Step 6 — Magnetic nature:</b> ${cfg.unpaired===0?'<b>Diamagnetic</b> — all electrons paired':'<b>Paramagnetic</b> — '+cfg.unpaired+' unpaired electron'+(cfg.unpaired>1?'s':'')}`;
+}
+
+function renderCompare(n,type){
+  const grid=document.getElementById('compareGrid');
+  grid.innerHTML='';
+  ['strong','weak'].forEach((f,i)=>{
+    const cfg=getConfig(n,type,f);
+    const cfse=getCFSE(n,type,f);
+    const mu=Math.sqrt(cfg.unpaired*(cfg.unpaired+2));
+    const sym=type==='oct'?'Δoct':'Δtet';
+    const card=document.createElement('div');
+    card.className='compare-card';
+    card.innerHTML=`<h4>${i===0?'Strong field (low spin)':'Weak field (high spin)'}</h4>
+      <div class="cmp-row"><span class="cmp-key">Unpaired (n)</span><span>${cfg.unpaired}</span></div>
+      <div class="cmp-row"><span class="cmp-key">μ (BM)</span><span>${mu.toFixed(2)}</span></div>
+      <div class="cmp-row"><span class="cmp-key">CFSE</span><span>${cfse.toFixed(3)} ${sym}</span></div>
+      <div class="cmp-row"><span class="cmp-key">Magnetic</span><span style="color:${cfg.unpaired>0?'#A32D2D':'#3B6D11'};font-weight:600">${cfg.unpaired>0?'Paramagnetic':'Diamagnetic'}</span></div>`;
+    grid.appendChild(card);
+  });
+}
+
+function toggleSteps(){
+  const box=document.getElementById('stepsBox');
+  const tog=document.getElementById('stepsToggle');
+  const show=box.style.display==='none'||box.style.display==='';
+  box.style.display=show?'block':'none';
+  tog.textContent=show?'Hide step-by-step solution':'Show step-by-step solution';
+}
+
+function resetAll(){
+  document.getElementById('dElec').value=5;
+  document.getElementById('dVal').textContent='5';
+  document.getElementById('complexType').value='oct';
+  document.getElementById('fieldType').value='strong';
+  document.getElementById('compareToggle').checked=false;
+  document.getElementById('resultArea').style.display='none';
+  document.getElementById('compareArea').style.display='none';
+  document.getElementById('stepsBox').style.display='none';
+  document.getElementById('errorMsg').style.display='none';
+}
+
+function applyPreset(n,type,field){
+  document.getElementById('dElec').value=n;
+  document.getElementById('dVal').textContent=n;
+  document.getElementById('complexType').value=type;
+  document.getElementById('fieldType').value=field;
+  calculate();
+}
+
+function exportResult(){
+  const n=parseInt(document.getElementById('dElec').value);
+  const type=document.getElementById('complexType').value;
+  const field=document.getElementById('fieldType').value;
+  const cfg=getConfig(n,type,field);
+  const cfse=getCFSE(n,type,field);
+  const mu=Math.sqrt(cfg.unpaired*(cfg.unpaired+2));
+  const sym=type==='oct'?'Δoct':'Δtet';
+  const txt=`CFSE & Magnetic Moment Result\n==============================\nd-electrons: ${n}\nComplex: ${type==='oct'?'Octahedral':'Tetrahedral'}\nLigand field: ${field==='strong'?'Strong (low spin)':'Weak (high spin)'}\nSpin state: ${spinLabel(n,type,field)}\nUnpaired electrons (n): ${cfg.unpaired}\nMagnetic moment (μ): ${mu.toFixed(2)} BM\nCFSE: ${cfse.toFixed(3)} ${sym}\nMagnetic nature: ${cfg.unpaired===0?'Diamagnetic':'Paramagnetic'}`;
+  const blob=new Blob([txt],{type:'text/plain'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`CFSE_d${n}_${type}_${field}.txt`;
+  a.click();
+}
+</script>
+</body>
+</html>
